@@ -1,0 +1,50 @@
+{
+    "name": "@lania/utils",
+    "version": "1.0.0",
+    "main": "dist/bundle.cjs.js",
+    "module": "dist/bundle.esm.js",
+    "types": "dist/types/index.d.ts",
+    "peerDependencies": {
+        "axios": "^1.7.3"
+    },
+    "scripts": {
+        "lint": "eslint 'src/**/*.{ts,tsx}'",
+        "format": "prettier --write 'src/**/*.{ts,tsx}'",
+        "prepare": "husky install",
+        "release": "standard-version",
+        "clean": "rimraf dist",
+        "build": "npm run clean && tsc && rollup -c",
+        "prebuild": "npm run clean"
+    },
+    "type": "module",
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@commitlint/cli": "^19.3.0",
+        "@commitlint/config-conventional": "^19.2.2",
+        "@rollup/plugin-commonjs": "^26.0.1",
+        "@rollup/plugin-node-resolve": "^15.2.3",
+        "@rollup/plugin-replace": "^5.0.7",
+        "@rollup/plugin-typescript": "^11.1.6",
+        "@types/axios": "^0.14.0",
+        "@types/node": "^22.1.0",
+        "eslint": "^9.8.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-prettier": "^5.2.1",
+        "eslint-plugin-unused-imports": "^4.0.1",
+        "husky": "^9.1.4",
+        "lint-staged": "^15.2.7",
+        "prettier": "^3.3.3",
+        "rimraf": "^6.0.1",
+        "rollup": "^4.19.2",
+        "rollup-plugin-dts": "^6.1.1",
+        "rollup-plugin-terser": "^7.0.2",
+        "standard-version": "^9.5.0",
+        "typescript": "^5.5.4"
+    },
+    "dependencies": {
+        "axios": "^1.7.3",
+        "tslib": "^2.6.3"
+    }
+}
