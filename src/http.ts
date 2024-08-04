@@ -1,47 +1,63 @@
-import axios, { AxiosRequestConfig, AxiosResponse, AxiosError, CancelTokenSource, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+    AxiosRequestConfig,
+    AxiosResponse,
+    AxiosError,
+    CancelTokenSource,
+    InternalAxiosRequestConfig,
+    AxiosInstance,
+    CreateAxiosDefaults,
+} from 'axios';
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 每片大小 5MB
 const MAX_RETRIES = 3; // 最大重试次数
 const RETRY_DELAY = 1000; // 重试间隔时间，单位为毫秒
 const POLLING_INTERVAL = 5000; // 轮询间隔时间，单位为毫秒
 
+interface AxiosWrapperInterceptors {
+    request?: {
+        onFulfilled?: (
+            value: InternalAxiosRequestConfig<any>,
+        ) =>
+            | InternalAxiosRequestConfig<any>
+            | Promise<InternalAxiosRequestConfig<any>>;
+        onRejected?: (error: any) => any;
+    };
+    response?: {
+        onFulfilled?: (
+            value: AxiosResponse<any, any>,
+        ) => AxiosResponse<any, any> | Promise<AxiosResponse<any, any>>;
+        onRejected?: (error: any) => any;
+    };
+}
+
 export class AxiosWrapper {
-    private instance = axios.create({
-        timeout: 60000,
-    });
+    private instance!: AxiosInstance;
+    private pollingTimeoutId!: NodeJS.Timeout;
 
     private requestQueue: (() => Promise<void>)[] = [];
     private activeRequests = 0;
     private cancelTokens: Map<string, CancelTokenSource> = new Map(); // 使用请求的唯一标识符作为键
-    private pollingTimeoutId: NodeJS.Timeout | null = null;
     private isPolling = false; // 控制轮询的标志
 
-    constructor(interceptors?: {
-        requestInterceptor?: (value: InternalAxiosRequestConfig<any>) => InternalAxiosRequestConfig<any> | Promise<InternalAxiosRequestConfig<any>>;
-        responseInterceptor?: (response: AxiosResponse) => AxiosResponse;
-        errorInterceptor?: (error: AxiosError) => Promise<any> | any;
-    }) {
-        if (interceptors) {
-            const { requestInterceptor, responseInterceptor, errorInterceptor } = interceptors;
-
-            if (requestInterceptor) {
-                this.instance.interceptors.request.use(requestInterceptor);
-            }
-
-            if (responseInterceptor) {
-                this.instance.interceptors.response.use(responseInterceptor);
-            }
-
-            if (errorInterceptor) {
-                this.instance.interceptors.response.use(
-                    response => response,
-                    errorInterceptor
-                );
-            }
-        }
+    constructor(
+        config?: CreateAxiosDefaults,
+        interceptors?: AxiosWrapperInterceptors,
+    ) {
+        this.instance = axios.create(config);
+        this.instance.interceptors.request.use(
+            interceptors?.request?.onFulfilled,
+            interceptors?.request?.onRejected,
+        );
+        this.instance.interceptors.response.use(
+            interceptors?.response?.onFulfilled,
+            interceptors?.response?.onRejected,
+        );
     }
 
-    public get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    public get<T>(
+        url: string,
+        config?: AxiosRequestConfig,
+    ): Promise<AxiosResponse<T>> {
         const cancelTokenSource = axios.CancelToken.source();
         if (config) {
             config.cancelToken = cancelTokenSource.token;
@@ -55,7 +71,11 @@ export class AxiosWrapper {
         });
     }
 
-    public post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    public post<T>(
+        url: string,
+        data?: any,
+        config?: AxiosRequestConfig,
+    ): Promise<AxiosResponse<T>> {
         const cancelTokenSource = axios.CancelToken.source();
         if (config) {
             config.cancelToken = cancelTokenSource.token;
@@ -69,7 +89,11 @@ export class AxiosWrapper {
         });
     }
 
-    public put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    public put<T>(
+        url: string,
+        data?: any,
+        config?: AxiosRequestConfig,
+    ): Promise<AxiosResponse<T>> {
         const cancelTokenSource = axios.CancelToken.source();
         if (config) {
             config.cancelToken = cancelTokenSource.token;
@@ -83,7 +107,10 @@ export class AxiosWrapper {
         });
     }
 
-    public delete<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    public delete<T>(
+        url: string,
+        config?: AxiosRequestConfig,
+    ): Promise<AxiosResponse<T>> {
         const cancelTokenSource = axios.CancelToken.source();
         if (config) {
             config.cancelToken = cancelTokenSource.token;
@@ -98,7 +125,10 @@ export class AxiosWrapper {
     }
 
     private async executeNextRequest(maxConcurrent: number): Promise<void> {
-        if (this.requestQueue.length > 0 && this.activeRequests < maxConcurrent) {
+        if (
+            this.requestQueue.length > 0 &&
+            this.activeRequests < maxConcurrent
+        ) {
             const request = this.requestQueue.shift();
             if (request) {
                 this.activeRequests++;
@@ -114,7 +144,10 @@ export class AxiosWrapper {
         }
     }
 
-    private async enqueueRequest(requestFn: () => Promise<void>, maxConcurrent: number): Promise<void> {
+    private async enqueueRequest(
+        requestFn: () => Promise<void>,
+        maxConcurrent: number,
+    ): Promise<void> {
         return new Promise((resolve, reject) => {
             this.requestQueue.push(async () => {
                 try {
@@ -128,7 +161,13 @@ export class AxiosWrapper {
         });
     }
 
-    private async uploadChunk(url: string, chunk: Blob, chunkIndex: number, totalChunks: number, cancelToken: CancelTokenSource): Promise<void> {
+    private async uploadChunk(
+        url: string,
+        chunk: Blob,
+        chunkIndex: number,
+        totalChunks: number,
+        cancelToken: CancelTokenSource,
+    ): Promise<void> {
         const formData = new FormData();
         formData.append('file', chunk);
         formData.append('chunkIndex', chunkIndex.toString());
@@ -147,11 +186,17 @@ export class AxiosWrapper {
                     throw new Error('Request canceled');
                 }
                 if (attempt < MAX_RETRIES) {
-                    console.warn(`Chunk ${chunkIndex} failed (attempt ${attempt + 1}). Retrying...`);
-                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                    console.warn(
+                        `Chunk ${chunkIndex} failed (attempt ${attempt + 1}). Retrying...`,
+                    );
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, RETRY_DELAY),
+                    );
                     await upload(attempt + 1);
                 } else {
-                    throw new Error(`Chunk ${chunkIndex} failed after ${MAX_RETRIES} attempts: ${(error as Error).message}`);
+                    throw new Error(
+                        `Chunk ${chunkIndex} failed after ${MAX_RETRIES} attempts: ${(error as Error).message}`,
+                    );
                 }
             }
         };
@@ -159,7 +204,11 @@ export class AxiosWrapper {
         await upload(0);
     }
 
-    public async uploadFile(url: string, file: File, maxConcurrent: number = 3): Promise<void> {
+    public async uploadFile(
+        url: string,
+        file: File,
+        maxConcurrent: number = 3,
+    ): Promise<void> {
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
         for (let index = 0; index < totalChunks; index++) {
@@ -168,14 +217,25 @@ export class AxiosWrapper {
             const chunk = file.slice(start, end);
 
             const cancelTokenSource = axios.CancelToken.source();
-            const uploadPromise = this.enqueueRequest(() => this.uploadChunk(url, chunk, index, totalChunks, cancelTokenSource), maxConcurrent)
-                .catch(error => {
-                    if (axios.isCancel(error)) {
-                        console.warn(`Chunk ${index} upload canceled`);
-                    } else {
-                        console.error(`Chunk ${index} upload failed: ${error.message}`);
-                    }
-                });
+            const uploadPromise = this.enqueueRequest(
+                () =>
+                    this.uploadChunk(
+                        url,
+                        chunk,
+                        index,
+                        totalChunks,
+                        cancelTokenSource,
+                    ),
+                maxConcurrent,
+            ).catch((error) => {
+                if (axios.isCancel(error)) {
+                    console.warn(`Chunk ${index} upload canceled`);
+                } else {
+                    console.error(
+                        `Chunk ${index} upload failed: ${error.message}`,
+                    );
+                }
+            });
 
             await uploadPromise;
         }
@@ -192,14 +252,21 @@ export class AxiosWrapper {
     }
 
     // 轮询方法
-    public polling(url: string, config?: AxiosRequestConfig, interval: number = POLLING_INTERVAL, maxRetries: number = MAX_RETRIES): void {
+    public polling(
+        url: string,
+        config?: AxiosRequestConfig,
+        interval: number = POLLING_INTERVAL,
+        maxRetries: number = MAX_RETRIES,
+    ): void {
         this.isPolling = true; // 设置轮询标志
 
         const poll = async (attempt: number): Promise<void> => {
             if (!this.isPolling) {
                 return; // 如果轮询被停止，则退出
             }
-
+            if (this.pollingTimeoutId) {
+                clearTimeout(this.pollingTimeoutId);
+            }
             try {
                 await this.get(url, config);
                 // 成功后重新设置轮询
@@ -210,11 +277,17 @@ export class AxiosWrapper {
                 }
 
                 if (attempt < maxRetries) {
-                    console.warn(`Polling failed (attempt ${attempt + 1}). Retrying...`);
-                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                    console.warn(
+                        `Polling failed (attempt ${attempt + 1}). Retrying...`,
+                    );
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, RETRY_DELAY),
+                    );
                     poll(attempt + 1);
                 } else {
-                    console.error(`Polling failed after ${maxRetries} attempts: ${(error as Error).message}`);
+                    console.error(
+                        `Polling failed after ${maxRetries} attempts: ${(error as Error).message}`,
+                    );
                 }
             }
         };

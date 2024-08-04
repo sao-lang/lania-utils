@@ -5,7 +5,7 @@ import { terser } from 'rollup-plugin-terser';
 import dts from 'rollup-plugin-dts';
 import fs from 'fs';
 import path from 'path';
-import replace from '@rollup/plugin-replace';
+import copy from 'rollup-plugin-copy';
 
 // Helper function to get all JavaScript files from the dist directory
 function getAllFiles(dirPath, ext = '.js') {
@@ -27,26 +27,25 @@ export default [
                 dir: 'dist/cjs',
                 format: 'cjs',
                 entryFileNames: '[name].cjs.js',
-                sourcemap: true,
                 exports: 'auto', // 处理命名和默认导出
             },
             {
                 dir: 'dist/esm',
                 format: 'esm',
                 entryFileNames: '[name].esm.js',
-                sourcemap: true,
             },
         ],
         plugins: [
             resolve(),
             commonjs(),
             terser(),
-            replace({
-                this: 'undefined', // Adjust if necessary
-                delimiters: ['', ''],
-                preventAssignment: true,
+            copy({
+                targets: [
+                    { src: 'src/message.css', dest: 'dist' }, // 替换为你的 CSS 文件路径
+                ],
             }),
         ],
+        context: 'this', // Add this line to set the correct context
         external: ['axios'],
     },
     // Configuration for type declarations

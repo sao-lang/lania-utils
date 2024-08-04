@@ -12,8 +12,8 @@ export class SSEClient {
     private reconnectInterval: number;
     private reconnectTimer: NodeJS.Timeout | null = null;
 
-    private onMessage: SSEEventCallback = () => { };
-    private onError: SSEErrorCallback = () => { };
+    private onMessage: SSEEventCallback = () => {};
+    private onError: SSEErrorCallback = () => {};
 
     constructor(options: SSEOptions) {
         this.url = options.url;
