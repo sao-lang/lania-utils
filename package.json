@@ -1,6 +1,6 @@
 {
     "name": "@lania/utils",
-    "version": "1.1.23",
+    "version": "1.1.24",
     "main": "dist/cjs/index.cjs.js",
     "module": "dist/esm/index.esm.js",
     "types": "dist/types/index.d.ts",
@@ -21,7 +21,7 @@
         "clean": "rimraf dist",
         "build": "npm run clean && tsc && rollup -c",
         "login": "npm login",
-        "publish": "npm config set registry https://registry.npmjs.org/ && pnpm run build && pnpm run release && npm publish --access public"
+        "publish": "npm publish --access public"
     },
     "type": "module",
     "keywords": [],
