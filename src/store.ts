@@ -13,11 +13,14 @@ export class Store {
     private state: Record<string, any>;
     private plugins: StorePlugin[];
     private subscribers: Set<(state: Record<string, any>) => void>;
-    private watchedProperties: Map<string, {
-        callback: (newValue: any, oldValue: any) => void;
-        value: any;
-        immediate: boolean; // 添加 immediate 标志
-    }>;
+    private watchedProperties: Map<
+        string,
+        {
+            callback: (newValue: any, oldValue: any) => void;
+            value: any;
+            immediate: boolean; // 添加 immediate 标志
+        }
+    >;
 
     constructor(initialState: Record<string, any> = {}) {
         this.state = initialState;
@@ -45,10 +48,11 @@ export class Store {
         }, obj)[keys[keys.length - 1]] = value;
     }
 
-    private notifyWatchers(oldState: Record<string, any>, newState: Record<string, any>): void {
+    private notifyWatchers(
+        newState: Record<string, any>,
+    ): void {
         this.watchedProperties.forEach((data, path) => {
             const newValue = this.getNestedValue(newState, path);
-            const oldValue = this.getNestedValue(oldState, path);
 
             if (newValue !== data.value) {
                 data.callback(newValue, data.value);
@@ -66,11 +70,11 @@ export class Store {
             this.state = path;
         }
 
-        this.notifyWatchers(oldState, this.state);
+        this.notifyWatchers(this.state);
         this.subscribers.forEach((subscriber) => subscriber(this.state));
         this.plugins.forEach((plugin) => {
             if (plugin.onStateChange) {
-                plugin.onStateChange(this, oldState, this.state);
+                plugin.onStateChange(this, this.state, oldState);
             }
         });
     }
@@ -93,7 +97,9 @@ export class Store {
         });
     }
 
-    public subscribe(subscriber: (state: Record<string, any>) => void): () => void {
+    public subscribe(
+        subscriber: (state: Record<string, any>) => void,
+    ): () => void {
         this.subscribers.add(subscriber);
         return () => {
             this.subscribers.delete(subscriber);
@@ -103,10 +109,14 @@ export class Store {
     public watchProperty(
         path: string,
         callback: (newValue: any, oldValue: any) => void,
-        immediate: boolean = false // 添加 immediate 参数
+        immediate: boolean = false, // 添加 immediate 参数
     ): () => void {
         const initialValue = this.getNestedValue(this.state, path);
-        this.watchedProperties.set(path, { callback, value: initialValue, immediate });
+        this.watchedProperties.set(path, {
+            callback,
+            value: initialValue,
+            immediate,
+        });
 
         if (immediate) {
             callback(initialValue, initialValue);
