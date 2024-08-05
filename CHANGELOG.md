@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/sao-lang/lania-utils/compare/v1.2.0...v1.3.0) (2024-08-05)
+
+
+### Features
+
+* second push ([ab0fc02](https://github.com/sao-lang/lania-utils/commit/ab0fc025e6038f9f58b182eade1d6b7c792d8c04))
+
 ## [1.2.0](https://github.com/sao-lang/lania-utils/compare/v1.1.28...v1.2.0) (2024-08-05)
 
 
