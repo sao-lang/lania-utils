@@ -10,3 +10,4 @@ export * from './translate';
 export * from './type';
 export * from './web-storage-helper';
 export * from './deepClone';
+export * from './validator';

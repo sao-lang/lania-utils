@@ -15,9 +15,13 @@ export type DerivedState<S> = {
 export type StorePlugin<S extends Record<string, any> = any> = {
     onInit?: (store: Store<S>) => void;
     onStateChange?: (store: Store<S>, newState: S, oldState: S) => void;
+    onError?: (store: Store<S>, error: Error) => void;
 };
 
-export type PathType<T, P extends string> = P extends `${infer Key}.${infer Rest}`
+export type PathType<
+    T,
+    P extends string,
+> = P extends `${infer Key}.${infer Rest}`
     ? Key extends keyof T
         ? PathType<T[Key], Rest>
         : never
@@ -88,28 +92,43 @@ export class Store<S extends Record<string, any>> {
             : (derivedState as any);
     }
 
-    public async dispatch(action: AsyncAction): Promise<void> {
-        const oldState = { ...this.state };
+    public async dispatch(
+        actionOrActions: AsyncAction | AsyncAction[],
+    ): Promise<void> {
+        try {
+            const actions = Array.isArray(actionOrActions)
+                ? actionOrActions
+                : [actionOrActions];
+            const oldState = { ...this.state };
+            for (const action of actions) {
+                if (action.asyncFunc) {
+                    try {
+                        action.payload = await action.asyncFunc(this.state);
+                    } catch (error) {
+                        console.error('Async action failed:', error);
+                        continue; // 如果异步任务失败，跳过此action
+                    }
+                }
 
-        if (action.asyncFunc) {
-            try {
-                action.payload = await action.asyncFunc(this.state);
-            } catch (error) {
-                console.error('Async action failed:', error);
-                return;
+                const reducer = this.reducers?.[action.type];
+                if (reducer) {
+                    this.state = reducer(this.state, action.payload);
+                } else {
+                    console.warn(
+                        `No reducer found for action type: ${action.type}`,
+                    );
+                }
             }
-        }
-
-        const reducer = this.reducers?.[action.type];
-        if (reducer) {
-            this.state = reducer(this.state, action.payload);
             this.notifyWatchers(this.state);
             this.subscribers.forEach((subscriber) => subscriber(this.state));
             this.plugins.forEach((plugin) =>
                 plugin.onStateChange?.(this, oldState, this.state),
             );
-        } else {
-            console.warn(`No reducer found for action type: ${action.type}`);
+        } catch (e) {
+            this.plugins.forEach((plugin) => {
+                plugin?.onError?.(this, e as Error);
+            });
+            throw e;
         }
     }
 
@@ -150,15 +169,12 @@ export class Store<S extends Record<string, any>> {
             immediate,
             deep,
         });
-
         if (deep) {
             this.applyDeepProxy(path, initialValue);
         }
-
         if (immediate) {
             callback(initialValue, initialValue);
         }
-
         return () => this.watchedProperties.delete(path);
     }
 
@@ -194,6 +210,7 @@ export class Store<S extends Record<string, any>> {
     private getNestedValue(obj: any, path: string): any {
         return path.split('.').reduce((o, p) => o && o[p], obj);
     }
+
     // 状态快照和恢复功能
     public saveSnapshot(): void {
         this.snapshots.push(deepClone(this.state));
@@ -209,6 +226,3 @@ export class Store<S extends Record<string, any>> {
         }
     }
 }
-
-const store = new Store({ initialState: { a: { b: 1 } } });
-const b = store.getState();

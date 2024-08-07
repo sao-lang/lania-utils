@@ -21,7 +21,10 @@
         "clean": "rimraf dist",
         "build": "npm run clean && tsc && rollup -c",
         "login": "npm login",
-        "publish": "npm publish --access public"
+        "publish": "npm publish --access public",
+        "release-minor": "standard-version --release-as minor",
+        "release-patch": "standard-version --release-as patch",
+        "release-major": "standard-version --release-as major"
     },
     "type": "module",
     "keywords": [],
