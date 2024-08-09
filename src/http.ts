@@ -13,6 +13,13 @@ const MAX_RETRIES = 3; // 最大重试次数
 const RETRY_DELAY = 1000; // 重试间隔时间，单位为毫秒
 const POLLING_INTERVAL = 5000; // 轮询间隔时间，单位为毫秒
 
+interface AxiosWrapperPollingOptions<T> {
+    onSuccess?: (res: AxiosResponse<T>) => void;
+    onError?: (error: Error) => void;
+    interval?: number;
+    maxRetries?: number;
+}
+
 interface AxiosWrapperInterceptors {
     request?: {
         onFulfilled?: (
@@ -29,6 +36,10 @@ interface AxiosWrapperInterceptors {
         onRejected?: (error: any) => any;
     };
 }
+
+type AxiosWrapperMethodConfig = AxiosRequestConfig & {
+    cancelTokenId?: string;
+};
 
 export class AxiosWrapper {
     private instance!: AxiosInstance;
@@ -56,71 +67,66 @@ export class AxiosWrapper {
 
     public get<T>(
         url: string,
-        config?: AxiosRequestConfig,
+        config?: AxiosWrapperMethodConfig,
     ): Promise<AxiosResponse<T>> {
         const cancelTokenSource = axios.CancelToken.source();
-        if (config) {
+        const hasTokenId = !!config?.cancelTokenId;
+        if (hasTokenId) {
             config.cancelToken = cancelTokenSource.token;
-        } else {
-            config = { cancelToken: cancelTokenSource.token };
+            this.cancelTokens.set(config!.cancelTokenId!, cancelTokenSource);
         }
-        this.cancelTokens.set(url, cancelTokenSource);
 
         return this.instance.get<T>(url, config).finally(() => {
-            this.cancelTokens.delete(url);
+            hasTokenId && this.cancelTokens.delete(config!.cancelTokenId!);
         });
     }
 
     public post<T>(
         url: string,
         data?: any,
-        config?: AxiosRequestConfig,
+        config?: AxiosWrapperMethodConfig,
     ): Promise<AxiosResponse<T>> {
         const cancelTokenSource = axios.CancelToken.source();
-        if (config) {
+        const hasTokenId = !!config?.cancelTokenId;
+        if (hasTokenId) {
             config.cancelToken = cancelTokenSource.token;
-        } else {
-            config = { cancelToken: cancelTokenSource.token };
+            this.cancelTokens.set(config!.cancelTokenId!, cancelTokenSource);
         }
-        this.cancelTokens.set(url, cancelTokenSource);
 
         return this.instance.post<T>(url, data, config).finally(() => {
-            this.cancelTokens.delete(url);
+            hasTokenId && this.cancelTokens.delete(config!.cancelTokenId!);
         });
     }
 
     public put<T>(
         url: string,
         data?: any,
-        config?: AxiosRequestConfig,
+        config?: AxiosWrapperMethodConfig,
     ): Promise<AxiosResponse<T>> {
         const cancelTokenSource = axios.CancelToken.source();
-        if (config) {
+        const hasTokenId = !!config?.cancelTokenId;
+        if (hasTokenId) {
             config.cancelToken = cancelTokenSource.token;
-        } else {
-            config = { cancelToken: cancelTokenSource.token };
+            this.cancelTokens.set(config!.cancelTokenId!, cancelTokenSource);
         }
-        this.cancelTokens.set(url, cancelTokenSource);
 
         return this.instance.put<T>(url, data, config).finally(() => {
-            this.cancelTokens.delete(url);
+            hasTokenId && this.cancelTokens.delete(config!.cancelTokenId!);
         });
     }
 
     public delete<T>(
         url: string,
-        config?: AxiosRequestConfig,
+        config?: AxiosWrapperMethodConfig,
     ): Promise<AxiosResponse<T>> {
         const cancelTokenSource = axios.CancelToken.source();
-        if (config) {
+        const hasTokenId = !!config?.cancelTokenId;
+        if (hasTokenId) {
             config.cancelToken = cancelTokenSource.token;
-        } else {
-            config = { cancelToken: cancelTokenSource.token };
+            this.cancelTokens.set(config!.cancelTokenId!, cancelTokenSource);
         }
-        this.cancelTokens.set(url, cancelTokenSource);
-
         return this.instance.delete<T>(url, config).finally(() => {
-            this.cancelTokens.delete(url);
+            hasTokenId && this.cancelTokens.delete(config!.cancelTokenId!);
         });
     }
 
@@ -243,23 +249,27 @@ export class AxiosWrapper {
         console.log('File upload process completed');
     }
 
-    public cancelRequest(url: string): void {
-        const cancelTokenSource = this.cancelTokens.get(url);
+    public cancelRequest(cancelTokenId: string): void {
+        if (cancelTokenId) {
+            return;
+        }
+        const cancelTokenSource = this.cancelTokens.get(cancelTokenId);
         if (cancelTokenSource) {
             cancelTokenSource.cancel('Request canceled by the user');
-            this.cancelTokens.delete(url);
+            this.cancelTokens.delete(cancelTokenId);
         }
     }
 
     // 轮询方法
-    public polling(
+    public polling<T>(
         url: string,
-        config?: AxiosRequestConfig,
-        interval: number = POLLING_INTERVAL,
-        maxRetries: number = MAX_RETRIES,
+        config: AxiosRequestConfig = {},
+        options: AxiosWrapperPollingOptions<T> = {},
     ): void {
         this.isPolling = true; // 设置轮询标志
-
+        const { interval = POLLING_INTERVAL, maxRetries = MAX_RETRIES } =
+            options;
+        config.url = url;
         const poll = async (attempt: number): Promise<void> => {
             if (!this.isPolling) {
                 return; // 如果轮询被停止，则退出
@@ -268,7 +278,7 @@ export class AxiosWrapper {
                 clearTimeout(this.pollingTimeoutId);
             }
             try {
-                await this.get(url, config);
+                await this.instance(config);
                 // 成功后重新设置轮询
                 this.pollingTimeoutId = setTimeout(() => poll(0), interval);
             } catch (error) {
@@ -291,8 +301,10 @@ export class AxiosWrapper {
                 }
             }
         };
-
-        // 开始轮询
         poll(0);
+    }
+
+    public stopPolling() {
+        this.isPolling = false;
     }
 }

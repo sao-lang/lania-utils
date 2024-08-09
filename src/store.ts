@@ -29,6 +29,10 @@ export type PathType<
       ? T[P]
       : never;
 
+export type FromPathType<P extends string, S, K> = P extends ''
+    ? S
+    : PathType<K, P>;
+
 export class Store<S extends Record<string, any>> {
     private state: S;
     private reducers?: Record<ActionType, (state: S, payload?: any) => S>;
@@ -66,9 +70,7 @@ export class Store<S extends Record<string, any>> {
         this.initializePlugins();
     }
 
-    public getState<P extends string = ''>(
-        path?: P,
-    ): P extends '' ? S : PathType<S, P> {
+    public getState<P extends string = ''>(path?: P): FromPathType<P, S, S> {
         return path
             ? (this.getNestedValue(this.state, path) as PathType<S, P>)
             : (this.state as any);
@@ -76,7 +78,7 @@ export class Store<S extends Record<string, any>> {
 
     public getDerivedState<P extends string = ''>(
         path?: P,
-    ): P extends '' ? Partial<S> : PathType<DerivedState<S>, P> {
+    ): FromPathType<P, Partial<S>, DerivedState<S>> {
         const derivedState = Object.fromEntries(
             Object.entries(this.derivedState).map(([key, func]) => [
                 key,
@@ -122,7 +124,7 @@ export class Store<S extends Record<string, any>> {
             this.notifyWatchers(this.state);
             this.subscribers.forEach((subscriber) => subscriber(this.state));
             this.plugins.forEach((plugin) =>
-                plugin.onStateChange?.(this, oldState, this.state),
+                plugin.onStateChange?.(this, this.state, oldState),
             );
         } catch (e) {
             this.plugins.forEach((plugin) => {
@@ -156,9 +158,12 @@ export class Store<S extends Record<string, any>> {
         return () => this.subscribers.delete(subscriber);
     }
 
-    public watchProperty(
-        path: string,
-        callback: (newValue: any, oldValue: any) => void,
+    public watchProperty<P extends string>(
+        path: P,
+        callback: (
+            newValue: FromPathType<P, S, S>,
+            oldValue: FromPathType<P, S, S>,
+        ) => void,
         options: { immediate?: boolean; deep?: boolean } = {},
     ): () => void {
         const { immediate = false, deep = false } = options;
