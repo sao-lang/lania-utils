@@ -1,13 +1,11 @@
-export * from './copy';
-export * from './debounce';
-export * from './formatTime';
+
+export * from './time';
 export * from './http';
 export * from './message';
 export * from './sse';
 export * from './store';
-export * from './throttle';
-export * from './translate';
 export * from './type';
 export * from './web-storage-helper';
-export * from './deepClone';
 export * from './validator';
+export * from './convert-text'
+export * from './tools'
