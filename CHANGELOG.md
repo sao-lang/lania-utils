@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.1](https://github.com/sao-lang/lania-utils/compare/v1.4.0...v1.4.1) (2024-08-09)
+
+
+### ♻️ Code Refactoring | 代码重构
+
+*  Adjust the project structure and modify some functions ([3cb1c07](https://github.com/sao-lang/lania-utils/commit/3cb1c07a65faa3c7f1e7702db517339a2a545900))
+
+
+### 🐛 Bug Fixes | Bug 修复
+
+* fix some bug from store and axios-wrapper ([872e7a8](https://github.com/sao-lang/lania-utils/commit/872e7a803dd6002df80266514cf2ee4dabe78cdf))
+* Modify the import error of deepClone ([763cf02](https://github.com/sao-lang/lania-utils/commit/763cf0253c2bccbad7b4a1e16cf6a689d24b6a93))
+
 ## [1.4.0](https://github.com/sao-lang/lania-utils/compare/v1.3.0...v1.4.0) (2024-08-07)
 
 
