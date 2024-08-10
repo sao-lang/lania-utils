@@ -1,6 +1,7 @@
 type ConvertOptions = {
     observeMutations?: boolean;
     batchSize?: number;
+    element?: HTMLElement;
 };
 
 // 文本转换函数，使用正则表达式批量替换
@@ -14,11 +15,14 @@ export const convertChineseText = (
 };
 
 export const convertPageChineseText = (
-    element: HTMLElement = document.body,
     dictionary: Record<string, string>,
     options: ConvertOptions = {},
 ): void => {
-    const { observeMutations = true, batchSize = 100 } = options;
+    const {
+        observeMutations = true,
+        batchSize = 100,
+        element = document.body,
+    } = options;
 
     // 处理元素节点的文本属性（如 value 和 placeholder）
     const processElementText = (
@@ -73,7 +77,10 @@ export const convertPageChineseText = (
         }
 
         if (node.nodeType === Node.TEXT_NODE) {
-            node.textContent = convertChineseText(node.textContent || '', dictionary);
+            node.textContent = convertChineseText(
+                node.textContent || '',
+                dictionary,
+            );
         } else {
             Array.from(node.childNodes).forEach((childNode) =>
                 convertNodeTextContent(childNode, dictionary),
