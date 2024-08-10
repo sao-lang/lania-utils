@@ -5,7 +5,7 @@ type ConvertOptions = {
 };
 
 // 文本转换函数，使用正则表达式批量替换
-const convertChinese = (
+export const convertChinese = (
     text: string,
     dictionary: Record<string, string>,
 ): string => {
