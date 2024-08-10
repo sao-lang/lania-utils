@@ -1,6 +1,7 @@
 type ConvertOptions = {
     observeMutations?: boolean;
     batchSize?: number;
+    element?: HTMLElement;
 };
 
 // 文本转换函数，使用正则表达式批量替换
@@ -17,7 +18,11 @@ export const convertPageChinese = (
     dictionary: Record<string, string>,
     options: ConvertOptions = {},
 ): (() => void) => {
-    const { observeMutations = false, batchSize = 50 } = options;
+    const {
+        observeMutations = false,
+        batchSize = 50,
+        element = document.body,
+    } = options;
 
     let observer: MutationObserver | null = null;
 
@@ -31,7 +36,10 @@ export const convertPageChinese = (
             element instanceof HTMLTextAreaElement
         ) {
             element.value = convertChinese(element.value, dictionary);
-            element.placeholder = convertChinese(element.placeholder, dictionary);
+            element.placeholder = convertChinese(
+                element.placeholder,
+                dictionary,
+            );
         } else if (element instanceof HTMLSelectElement) {
             Array.from(element.options).forEach((option) => {
                 option.text = convertChinese(option.text, dictionary);
@@ -67,7 +75,10 @@ export const convertPageChinese = (
         }
 
         if (node.nodeType === Node.TEXT_NODE) {
-            node.textContent = convertChinese(node.textContent || '', dictionary);
+            node.textContent = convertChinese(
+                node.textContent || '',
+                dictionary,
+            );
         } else {
             Array.from(node.childNodes).forEach((childNode) =>
                 convertNodeTextContent(childNode, dictionary),
@@ -99,7 +110,7 @@ export const convertPageChinese = (
 
     // 处理整个文档的文本内容
     const convertDocumentBody = (dictionary: Record<string, string>): void => {
-        convertNodeTextContentInBatches(document.body, dictionary);
+        convertNodeTextContentInBatches(element, dictionary);
     };
 
     // 执行文档转换
@@ -115,7 +126,7 @@ export const convertPageChinese = (
             });
         });
 
-        observer.observe(document.body, { childList: true, subtree: true });
+        observer.observe(element, { childList: true, subtree: true });
     }
 
     // 提供一个停止观察的方法
