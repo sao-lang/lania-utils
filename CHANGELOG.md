@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.11](https://github.com/sao-lang/lania-utils/compare/v1.4.10...v1.4.11) (2024-08-10)
+
+
+### 🐛 Bug Fixes | Bug 修复
+
+* Store fixes the situation where monitoring the same path is not triggered ([0db90f2](https://github.com/sao-lang/lania-utils/commit/0db90f2051f4c203bac695bcd50c5cfe4a1bfb94))
+
 ### [1.4.10](https://github.com/sao-lang/lania-utils/compare/v1.4.9...v1.4.10) (2024-08-10)
 
 
