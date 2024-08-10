@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.10](https://github.com/sao-lang/lania-utils/compare/v1.4.9...v1.4.10) (2024-08-10)
+
+
+### 🐛 Bug Fixes | Bug 修复
+
+* Modify the Chinese Simplified to Traditional Conversion Function ([a01f275](https://github.com/sao-lang/lania-utils/commit/a01f275c06439c4e11572048f3a048997a0e3d05))
+
 ### [1.4.9](https://github.com/sao-lang/lania-utils/compare/v1.4.8...v1.4.9) (2024-08-10)
 
 
