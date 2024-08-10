@@ -37,14 +37,16 @@ type DerivedState<S, D> = {
 };
 
 // 获取某个派生状态值的类型
-type GetDerivedStateValue<S, D, K extends keyof D> = ReturnType<DerivedState<S, D>[K]>;
+type GetDerivedStateValue<S, D, K extends keyof D> = ReturnType<
+    DerivedState<S, D>[K]
+>;
 
 // 如果 path 存在，则返回对应的值类型；如果 path 不存在，则返回整个派生状态对象
 type GetDerivedStateType<S, D, P extends keyof D | ''> = P extends keyof D
     ? GetDerivedStateValue<S, D, P>
     : P extends ''
-    ? { [K in keyof D]: GetDerivedStateValue<S, D, K> }
-    : never;
+      ? { [K in keyof D]: GetDerivedStateValue<S, D, K> }
+      : never;
 
 export class Store<
     S extends Record<string, any>,
@@ -57,7 +59,7 @@ export class Store<
     private watchedProperties: Map<
         string,
         {
-            callback: (newValue: any, oldValue: any) => void;
+            callbacks: ((newValue: any, oldValue: any) => void)[];
             value: any;
             immediate: boolean;
             deep: boolean;
@@ -159,7 +161,9 @@ export class Store<
         this.watchedProperties.forEach((data, path) => {
             const newValue = this.getNestedValue(newState, path);
             if (newValue !== data.value) {
-                data.callback(newValue, data.value);
+                data.callbacks.forEach((callback) => {
+                    callback(newValue, data.value);
+                });
                 data.value = newValue;
             }
         });
@@ -189,18 +193,17 @@ export class Store<
     ): () => void {
         const { immediate = false, deep = false } = options;
         const initialValue = this.getNestedValue(this.state, path);
-        this.watchedProperties.set(path, {
-            callback,
-            value: initialValue,
-            immediate,
-            deep,
-        });
-        if (deep) {
-            this.applyDeepProxy(path, initialValue);
-        }
-        if (immediate) {
-            callback(initialValue, initialValue);
-        }
+        const data = this.watchedProperties.get(path);
+        data
+            ? data.callbacks.push(callback)
+            : this.watchedProperties.set(path, {
+                  callbacks: [callback],
+                  value: initialValue,
+                  immediate,
+                  deep,
+              });
+        deep && this.applyDeepProxy(path, initialValue);
+        immediate && callback(initialValue, initialValue);
         return () => this.watchedProperties.delete(path);
     }
 
@@ -213,22 +216,23 @@ export class Store<
                     const fullPath = `${path}.${String(prop)}`;
                     const watchData = this.watchedProperties.get(fullPath);
                     if (watchData) {
-                        watchData.callback(value, oldValue);
+                        watchData.callbacks.forEach((callback) =>
+                            callback(value, oldValue),
+                        );
                         this.notifyWatchers(this.state);
                     }
-                    if (typeof value === 'object' && value !== null) {
+                    typeof value === 'object' &&
+                        value !== null &&
                         this.applyDeepProxy(fullPath, value);
-                    }
                 }
                 return true;
             },
         };
-
-        for (const key of Object.keys(obj)) {
+        Object.keys(obj).forEach((key) => {
             if (typeof obj[key] === 'object' && obj[key] !== null) {
                 obj[key] = new Proxy(obj[key], handler);
             }
-        }
+        });
 
         this.state = new Proxy(this.state, handler);
     }
