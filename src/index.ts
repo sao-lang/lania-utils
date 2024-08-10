@@ -1,4 +1,3 @@
-
 export * from './time';
 export * from './http';
 export * from './message';
@@ -7,5 +6,5 @@ export * from './store';
 export * from './type';
 export * from './web-storage-helper';
 export * from './validator';
-export * from './convert-text'
-export * from './tools'
+export * from './convert-chinese-text';
+export * from './tools';

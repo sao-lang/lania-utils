@@ -4,7 +4,7 @@ type ConvertOptions = {
 };
 
 // 文本转换函数，使用正则表达式批量替换
-export const convertText = (
+export const convertChineseText = (
     text: string,
     dictionary: Record<string, string>,
 ): string => {
@@ -13,7 +13,8 @@ export const convertText = (
     return text.replace(pattern, (char) => dictionary[char] || char);
 };
 
-export const convertPageText = (
+export const convertPageChineseText = (
+    element: HTMLElement = document.body,
     dictionary: Record<string, string>,
     options: ConvertOptions = {},
 ): void => {
@@ -29,17 +30,17 @@ export const convertPageText = (
             element instanceof HTMLTextAreaElement
         ) {
             if (element.value) {
-                element.value = convertText(element.value, dictionary);
+                element.value = convertChineseText(element.value, dictionary);
             }
             if (element.placeholder) {
-                element.placeholder = convertText(
+                element.placeholder = convertChineseText(
                     element.placeholder,
                     dictionary,
                 );
             }
         } else if (element instanceof HTMLSelectElement) {
             Array.from(element.options).forEach((option) => {
-                option.text = convertText(option.text, dictionary);
+                option.text = convertChineseText(option.text, dictionary);
             });
         }
     };
@@ -72,7 +73,7 @@ export const convertPageText = (
         }
 
         if (node.nodeType === Node.TEXT_NODE) {
-            node.textContent = convertText(node.textContent || '', dictionary);
+            node.textContent = convertChineseText(node.textContent || '', dictionary);
         } else {
             Array.from(node.childNodes).forEach((childNode) =>
                 convertNodeTextContent(childNode, dictionary),
@@ -104,9 +105,9 @@ export const convertPageText = (
 
     // 处理整个文档的文本内容
     const convertDocumentBody = (dictionary: Record<string, string>): void => {
-        const bodyClone = document.body.cloneNode(true) as HTMLElement;
+        const bodyClone = element.cloneNode(true) as HTMLElement;
         convertNodeTextContentInBatches(bodyClone, dictionary);
-        document.body.replaceWith(bodyClone);
+        element.replaceWith(bodyClone);
     };
 
     // 执行文档转换
@@ -122,6 +123,6 @@ export const convertPageText = (
             });
         });
 
-        observer.observe(document.body, { childList: true, subtree: true });
+        observer.observe(element, { childList: true, subtree: true });
     }
 };
