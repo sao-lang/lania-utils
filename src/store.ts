@@ -7,15 +7,13 @@ export interface AsyncAction {
     payload?: any;
     asyncFunc?: (state: any) => Promise<any>;
 }
-
-export type DerivedState<S> = {
-    [K in keyof S]?: (state: S) => S[K];
-};
-
-export type StorePlugin<S extends Record<string, any> = any> = {
-    onInit?: (store: Store<S>) => void;
-    onStateChange?: (store: Store<S>, newState: S, oldState: S) => void;
-    onError?: (store: Store<S>, error: Error) => void;
+export type StorePlugin<
+    S extends Record<string, any> = any,
+    D extends Record<string, any> = any,
+> = {
+    onInit?: (store: Store<S, D>) => void;
+    onStateChange?: (store: Store<S, D>, newState: S, oldState: S) => void;
+    onError?: (store: Store<S, D>, error: Error) => void;
 };
 
 export type PathType<
@@ -33,7 +31,25 @@ export type FromPathType<P extends string, S, K> = P extends ''
     ? S
     : PathType<K, P>;
 
-export class Store<S extends Record<string, any>> {
+// 每个派生状态键的值是一个接受状态并返回某个值的函数
+type DerivedState<S, D> = {
+    [K in keyof D]: (state: S) => D[K];
+};
+
+// 获取某个派生状态值的类型
+type GetDerivedStateValue<S, D, K extends keyof D> = ReturnType<DerivedState<S, D>[K]>;
+
+// 如果 path 存在，则返回对应的值类型；如果 path 不存在，则返回整个派生状态对象
+type GetDerivedStateType<S, D, P extends keyof D | ''> = P extends keyof D
+    ? GetDerivedStateValue<S, D, P>
+    : P extends ''
+    ? { [K in keyof D]: GetDerivedStateValue<S, D, K> }
+    : never;
+
+export class Store<
+    S extends Record<string, any>,
+    D extends Record<string, any>,
+> {
     private state: S;
     private reducers?: Record<ActionType, (state: S, payload?: any) => S>;
     private plugins: StorePlugin<S>[];
@@ -47,18 +63,18 @@ export class Store<S extends Record<string, any>> {
             deep: boolean;
         }
     >;
-    private derivedState: DerivedState<S>;
+    private derivedState: DerivedState<S, D>;
     private snapshots: S[] = [];
 
     constructor({
         initialState,
         reducers,
-        derivedState = {},
+        derivedState = {} as DerivedState<S, D>,
         plugins = [],
     }: {
         initialState: S;
         reducers?: Record<ActionType, (state: S, payload?: any) => S>;
-        derivedState?: DerivedState<S>;
+        derivedState?: DerivedState<S, D>;
         plugins?: StorePlugin<S>[];
     }) {
         this.state = initialState;
@@ -76,22 +92,27 @@ export class Store<S extends Record<string, any>> {
             : (this.state as any);
     }
 
-    public getDerivedState<P extends string = ''>(
+    public getDerivedState<P extends keyof D | '' = ''>(
         path?: P,
-    ): FromPathType<P, Partial<S>, DerivedState<S>> {
-        const derivedState = Object.fromEntries(
-            Object.entries(this.derivedState).map(([key, func]) => [
-                key,
-                func!(this.state),
-            ]),
-        ) as Partial<S>;
+    ): GetDerivedStateType<S, D, P> {
+        if (path === undefined || path === '') {
+            // 如果没有 path，则返回整个 derivedState 对象
+            const derivedState = Object.fromEntries(
+                Object.entries(this.derivedState).map(([key, func]) => [
+                    key,
+                    func(this.state),
+                ]),
+            ) as { [K in keyof D]: GetDerivedStateValue<S, D, K> };
 
-        return path
-            ? (this.getNestedValue(derivedState, path) as PathType<
-                  DerivedState<S>,
-                  P
-              >)
-            : (derivedState as any);
+            return derivedState as GetDerivedStateType<S, D, ''> as any;
+        } else if (path in this.derivedState) {
+            // 如果有 path 且 path 存在于 derivedState 中，则返回对应的值
+            const func = this.derivedState[path];
+            return func(this.state) as GetDerivedStateType<S, D, typeof path>;
+        } else {
+            // 如果 path 不存在于 derivedState 中，则返回 never
+            return undefined as never;
+        }
     }
 
     public async dispatch(
