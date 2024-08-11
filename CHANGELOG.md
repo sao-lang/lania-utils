@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.12](https://github.com/sao-lang/lania-utils/compare/v1.4.11...v1.4.12) (2024-08-11)
+
+
+### ✨ Features | 新功能
+
+* add draggable ([6f844e8](https://github.com/sao-lang/lania-utils/commit/6f844e876bd3f870feed31d47050ac4d31950750))
+
 ### [1.4.11](https://github.com/sao-lang/lania-utils/compare/v1.4.10...v1.4.11) (2024-08-10)
 
 
