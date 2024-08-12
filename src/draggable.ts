@@ -19,7 +19,6 @@ export interface DraggableOptions {
     initialPosition?: { x: number; y: number };
     enableTouch?: boolean;
     enableAnimation?: boolean;
-    throttleDelay?: number; // in milliseconds
     snapToGrid?: { x: number; y: number }; // snap grid size
     snapThreshold?: number; // snap distance threshold
     enableSnap?: boolean; // enable or disable snapping
@@ -36,7 +35,6 @@ export class Draggable {
     private onDragEnd?: (event: CustomDragEvent) => void;
     private enableTouch: boolean;
     private enableAnimation: boolean;
-    private throttleDelay: number;
     private lastDragTime: number = 0;
     private requestId: number | undefined;
     private elementRect: DOMRect | undefined;
@@ -53,7 +51,6 @@ export class Draggable {
         this.onDragEnd = options.onDragEnd;
         this.enableTouch = options.enableTouch || false;
         this.enableAnimation = options.enableAnimation || false;
-        this.throttleDelay = options.throttleDelay || 0;
         this.snapToGrid = options.snapToGrid || null;
         this.snapThreshold = options.snapThreshold || 10;
         this.enableSnap = options.enableSnap || false;
@@ -97,14 +94,6 @@ export class Draggable {
             this.element.removeEventListener('touchstart', this.onTouchStart);
             document.removeEventListener('touchmove', this.onTouchMove);
             document.removeEventListener('touchend', this.onTouchEnd);
-        }
-    }
-
-    public setDraggable(enabled: boolean): void {
-        if (enabled) {
-            this.bindEvents();
-        } else {
-            this.unbindEvents();
         }
     }
 
