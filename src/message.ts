@@ -83,7 +83,8 @@ export class Message {
         );
         if (!style) {
             style = document.createElement('style');
-            style.innerHTML = css;
+            style.setAttribute('data-lania-utils-message', 'true');
+            style.textContent = css;
             document.body.appendChild(style);
         }
     }
