@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.22](https://github.com/sao-lang/lania-utils/compare/v1.4.21...v1.4.22) (2024-08-17)
+
+
+### 📦‍ Build System | 打包构建
+
+* change build config ([0d8db9a](https://github.com/sao-lang/lania-utils/commit/0d8db9a1b82d3bd6734611ba312400859217df59))
+
 ### [1.4.21](https://github.com/sao-lang/lania-utils/compare/v1.4.20...v1.4.21) (2024-08-17)
 
 
