@@ -34,69 +34,72 @@
             "types": "./dist/types/index.d.ts"
         },
         "./axios-wrapper": {
-            "import": "./dist/axios-wrapper.esm.js",
-            "require": "./dist/axios-wrapper.cjs.js",
+            "import": "./dist/esm/axios-wrapper.esm.js",
+            "require": "./dist/cjs/axios-wrapper.cjs.js",
             "types": "./dist/types/axios-wrapper.d.ts"
         },
         "./draggable": {
-            "import": "./dist/draggable.esm.js",
-            "require": "./dist/draggable.cjs.js",
+            "import": "./dist/esm/draggable.esm.js",
+            "require": "./dist/cjs/draggable.cjs.js",
             "types": "./dist/types/draggable.d.ts"
         },
         "./event-bus": {
-            "import": "./dist/event-bus.esm.js",
-            "require": "./dist/event-bus.cjs.js",
+            "import": "./dist/esm/event-bus.esm.js",
+            "require": "./dist/cjs/event-bus.cjs.js",
             "types": "./dist/types/event-bus.d.ts"
         },
         "./convert-chinese-text": {
-            "import": "./dist/convert-chinese-text.esm.js",
-            "require": "./dist/convert-chinese-text.cjs.js",
+            "import": "./dist/esm/convert-chinese-text.esm.js",
+            "require": "./dist/cjs/convert-chinese-text.cjs.js",
             "types": "./dist/types/convert-chinese-text.d.ts"
         },
         "./message": {
-            "import": "./dist/message.esm.js",
-            "require": "./dist/message.cjs.js",
+            "import": "./dist/esm/message.esm.js",
+            "require": "./dist/cjs/message.cjs.js",
             "types": "./dist/types/message.d.ts"
         },
         "./sse-client": {
-            "import": "./dist/sse-client.esm.js",
-            "require": "./dist/sse-client.cjs.js",
+            "import": "./dist/esm/sse-client.esm.js",
+            "require": "./dist/cjs/sse-client.cjs.js",
             "types": "./dist/types/sse-client.d.ts"
         },
         "./store": {
-            "import": "./dist/store.esm.js",
-            "require": "./dist/store.cjs.js",
+            "import": "./dist/esm/store.esm.js",
+            "require": "./dist/cjs/store.cjs.js",
             "types": "./dist/types/store.d.ts"
         },
         "./format-time": {
-            "import": "./dist/format-time.esm.js",
-            "require": "./dist/format-time.cjs.js",
+            "import": "./dist/esm/format-time.esm.js",
+            "require": "./dist/cjs/format-time.cjs.js",
             "types": "./dist/types/format-time.d.ts"
         },
         "./tools": {
-            "import": "./dist/tools.esm.js",
-            "require": "./dist/tools.cjs.js",
+            "import": "./dist/esm/tools.esm.js",
+            "require": "./dist/cjs/tools.cjs.js",
             "types": "./dist/types/tools.d.ts"
         },
         "./type": {
-            "import": "./dist/type.esm.js",
-            "require": "./dist/type.cjs.js",
+            "import": "./dist/esm/type.esm.js",
+            "require": "./dist/cjs/type.cjs.js",
             "types": "./dist/types/type.d.ts"
         },
         "./validator": {
-            "import": "./dist/validator.esm.js",
-            "require": "./dist/validator.cjs.js",
+            "import": "./dist/esm/validator.esm.js",
+            "require": "./dist/cjs/validator.cjs.js",
             "types": "./dist/types/validator.d.ts"
         },
         "./web-storage-helper": {
-            "import": "./dist/web-storage-helper.esm.js",
-            "require": "./dist/web-storage-helper.cjs.js",
+            "import": "./dist/esm/web-storage-helper.esm.js",
+            "require": "./dist/cjs/web-storage-helper.cjs.js",
             "types": "./dist/types/web-storage-helper.d.ts"
         },
         "./websocket-client": {
-            "import": "./dist/websocket-client.esm.js",
-            "require": "./dist/websocket-client.cjs.js",
+            "import": "./dist/esm/websocket-client.esm.js",
+            "require": "./dist/cjs/websocket-client.cjs.js",
             "types": "./dist/types/websocket-client.d.ts"
+        },
+        "./message.css": {
+            "import": "./dist/message.css"
         }
     },
     "type": "module",
