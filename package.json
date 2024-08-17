@@ -1,6 +1,6 @@
 {
     "name": "@lania/utils",
-    "version": "1.4.19",
+    "version": "1.4.20",
     "main": "dist/cjs/index.cjs.js",
     "module": "dist/esm/index.esm.js",
     "types": "dist/index.d.ts",
