@@ -20,7 +20,7 @@
         "prepare": "husky install",
         "release": "standard-version",
         "clean": "rimraf dist",
-        "build": "npm run clean && tsc && rollup -c && del-cli \"dist/**\" \"!dist/types\" \"!dist/esm\" \"!dist/cjs\"",
+        "build": "npm run clean && tsc && rollup -c && del-cli \"dist/**\" \"!dist/types\" \"!dist/esm\" \"!dist/cjs\" \"!dist/index.d.ts\"",
         "login": "npm login",
         "publish": "npm publish --access public",
         "release-minor": "standard-version --release-as minor",
