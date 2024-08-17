@@ -28,6 +28,11 @@
         "release-major": "standard-version --release-as major"
     },
     "exports": {
+        ".": {
+            "import": "./dist/esm/index.esm.js",
+            "require": "./dist/cjs/index.cjs.js",
+            "types": "./dist/types/index.d.ts"
+        },
         "./axios-wrapper": {
             "import": "./dist/axios-wrapper.esm.js",
             "require": "./dist/axios-wrapper.cjs.js",
