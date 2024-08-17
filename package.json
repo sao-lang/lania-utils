@@ -1,6 +1,6 @@
 {
     "name": "@lania/utils",
-    "version": "1.4.12",
+    "version": "1.4.13",
     "main": "dist/cjs/index.cjs.js",
     "module": "dist/esm/index.esm.js",
     "types": "dist/types/index.d.ts",
@@ -11,7 +11,8 @@
         "access": "public"
     },
     "files": [
-        "dist"
+        "dist",
+        "CHANGELOG.md"
     ],
     "scripts": {
         "lint": "eslint 'src/**/*.{ts,tsx}'",
@@ -19,12 +20,66 @@
         "prepare": "husky install",
         "release": "standard-version",
         "clean": "rimraf dist",
-        "build": "npm run clean && tsc && rollup -c",
+        "build": "npm run clean && tsc && rollup -c && del-cli \"dist/**\" \"!dist/types\" \"!dist/esm\" \"!dist/cjs\"",
         "login": "npm login",
         "publish": "npm publish --access public",
         "release-minor": "standard-version --release-as minor",
         "release-patch": "standard-version --release-as patch",
         "release-major": "standard-version --release-as major"
+    },
+    "exports": {
+        "./axios-wrapper": {
+            "import": "./dist/axios-wrapper.esm.js",
+            "require": "./dist/axios-wrapper.cjs.js"
+        },
+        "./draggable": {
+            "import": "./dist/draggable.esm.js",
+            "require": "./dist/draggable.cjs.js"
+        },
+        "./event-bus": {
+            "import": "./dist/event-bus.esm.js",
+            "require": "./dist/event-bus.cjs.js"
+        },
+        "./convert-chinese-text": {
+            "import": "./dist/convert-chinese-text.esm.js",
+            "require": "./dist/convert-chinese-text.cjs.js"
+        },
+        "./message": {
+            "import": "./dist/message.esm.js",
+            "require": "./dist/message.cjs.js"
+        },
+        "./sse-client": {
+            "import": "./dist/sse-client.esm.js",
+            "require": "./dist/sse-client.cjs.js"
+        },
+        "./store": {
+            "import": "./dist/store.esm.js",
+            "require": "./dist/store.cjs.js"
+        },
+        "./format-time": {
+            "import": "./dist/format-time.esm.js",
+            "require": "./dist/format-time.cjs.js"
+        },
+        "./tools": {
+            "import": "./dist/tools.esm.js",
+            "require": "./dist/tools.cjs.js"
+        },
+        "./type": {
+            "import": "./dist/type.esm.js",
+            "require": "./dist/type.cjs.js"
+        },
+        "./validator": {
+            "import": "./dist/validator.esm.js",
+            "require": "./dist/validator.cjs.js"
+        },
+        "./web-storage-helper": {
+            "import": "./dist/web-storage-helper.esm.js",
+            "require": "./dist/web-storage-helper.cjs.js"
+        },
+        "./websocket-client": {
+            "import": "./dist/websocket-client.esm.js",
+            "require": "./dist/websocket-client.cjs.js"
+        }
     },
     "type": "module",
     "keywords": [],
@@ -50,12 +105,16 @@
         "rollup": "^4.19.2",
         "rollup-plugin-copy": "^3.5.0",
         "rollup-plugin-dts": "^6.1.1",
+        "rollup-plugin-includepaths": "^0.2.4",
         "rollup-plugin-terser": "^7.0.2",
+        "rollup-plugin-typescript2": "^0.36.0",
+        "shx": "^0.3.4",
         "standard-version": "^9.5.0",
-        "typescript": "^5.5.4"
+        "typescript": "^5.5.4",
+        "tslib": "^2.6.3",
+        "del-cli": "^5.1.0"
     },
     "dependencies": {
-        "axios": "^1.7.3",
-        "tslib": "^2.6.3"
+        "axios": "^1.7.3"
     }
 }
