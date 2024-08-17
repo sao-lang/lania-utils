@@ -6,8 +6,6 @@ import dts from 'rollup-plugin-dts';
 import fs from 'fs';
 import path from 'path';
 import copy from 'rollup-plugin-copy';
-import typescript from 'rollup-plugin-typescript2';
-import includePaths from 'rollup-plugin-includepaths';
 
 // Helper function to get all JavaScript files from the dist directory
 function getAllFiles(dirPath, ext = '.js') {
@@ -42,19 +40,11 @@ export default [
             resolve(),
             commonjs(),
             terser(),
-            // copy({
-            //     targets: [
-            //         { src: 'src/message.css', dest: 'dist' }, // 替换为你的 CSS 文件路径
-            //     ],
-            // }),
-            // includePaths({
-            //     include: {},
-            //     paths: ['src'],
-            //     extensions: ['.js', '.ts'], // 自动添加的后缀名
-            // }),
-            // typescript({
-            //     tsconfig: 'tsconfig.json', // 指定你的 tsconfig.json 文件路径
-            // }),
+            copy({
+                targets: [
+                    { src: 'src/message.css', dest: 'dist' }, // 替换为你的 CSS 文件路径
+                ],
+            }),
         ],
         context: 'this', // Add this line to set the correct context
         external: ['axios'],

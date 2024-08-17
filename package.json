@@ -3,7 +3,7 @@
     "version": "1.4.20",
     "main": "dist/cjs/index.cjs.js",
     "module": "dist/esm/index.esm.js",
-    "types": "dist/index.d.ts",
+    "types": "dist/types/index.d.ts",
     "peerDependencies": {
         "axios": "^1.7.3"
     },
@@ -20,7 +20,7 @@
         "prepare": "husky install",
         "release": "standard-version",
         "clean": "rimraf dist",
-        "build": "npm run clean && tsc && rollup -c && del-cli \"dist/**\" \"!dist/types\" \"!dist/esm\" \"!dist/cjs\" \"!dist/index.d.ts\"",
+        "build": "npm run clean && tsc && rollup -c && del-cli \"dist/**\" \"!dist/types\" \"!dist/esm\" \"!dist/cjs\" \"!dist/message.css\"",
         "login": "npm login",
         "publish": "npm publish --access public",
         "release-minor": "standard-version --release-as minor",
@@ -123,10 +123,7 @@
         "rollup": "^4.19.2",
         "rollup-plugin-copy": "^3.5.0",
         "rollup-plugin-dts": "^6.1.1",
-        "rollup-plugin-includepaths": "^0.2.4",
         "rollup-plugin-terser": "^7.0.2",
-        "rollup-plugin-typescript2": "^0.36.0",
-        "shx": "^0.3.4",
         "standard-version": "^9.5.0",
         "typescript": "^5.5.4",
         "tslib": "^2.6.3",
