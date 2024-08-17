@@ -6,9 +6,11 @@ import dts from 'rollup-plugin-dts';
 import fs from 'fs';
 import path from 'path';
 import copy from 'rollup-plugin-copy';
+import typescript from 'rollup-plugin-typescript2';
+import includePaths from 'rollup-plugin-includepaths';
 
 // Helper function to get all JavaScript files from the dist directory
-function getAllFiles(dirPath, ext = '.js') {
+function getAllFiles(dirPath, ext = '.ts') {
     return fs
         .readdirSync(dirPath)
         .filter((file) => file.endsWith(ext))
@@ -16,7 +18,7 @@ function getAllFiles(dirPath, ext = '.js') {
 }
 
 // Define the input files for Rollup
-const inputFiles = getAllFiles('dist'); // Get all JavaScript files from the dist directory
+const inputFiles = getAllFiles('src'); // Get all JavaScript files from the dist directory
 
 export default [
     // Configuration for source files
@@ -27,22 +29,31 @@ export default [
                 dir: 'dist/cjs',
                 format: 'cjs',
                 entryFileNames: '[name].cjs.js',
-                exports: 'auto', // 处理命名和默认导出
+                exports: 'named', // 添加这一行
             },
             {
                 dir: 'dist/esm',
                 format: 'esm',
                 entryFileNames: '[name].esm.js',
+                exports: 'named', // 添加这一行
             },
         ],
         plugins: [
             resolve(),
             commonjs(),
             terser(),
-            copy({
-                targets: [
-                    { src: 'src/message.css', dest: 'dist' }, // 替换为你的 CSS 文件路径
-                ],
+            // copy({
+            //     targets: [
+            //         { src: 'src/message.css', dest: 'dist' }, // 替换为你的 CSS 文件路径
+            //     ],
+            // }),
+            includePaths({
+                include: {},
+                paths: ['src'],
+                extensions: ['.js', '.ts'], // 自动添加的后缀名
+            }),
+            typescript({
+                tsconfig: 'tsconfig.json', // 指定你的 tsconfig.json 文件路径
             }),
         ],
         context: 'this', // Add this line to set the correct context

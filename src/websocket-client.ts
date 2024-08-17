@@ -17,10 +17,10 @@ export class WebSocketClient {
     private reconnectAttempts: number = 0;
     private heartbeatTimer: NodeJS.Timeout | null = null;
 
-    private onOpen: WebSocketEventCallback = () => { };
-    private onClose: WebSocketEventCallback = () => { };
-    private onError: WebSocketEventCallback = () => { };
-    private onMessage: WebSocketMessageCallback = () => { };
+    private onOpen: WebSocketEventCallback = () => {};
+    private onClose: WebSocketEventCallback = () => {};
+    private onError: WebSocketEventCallback = () => {};
+    private onMessage: WebSocketMessageCallback = () => {};
 
     constructor(options: WebSocketOptions) {
         this.url = options.url;
@@ -110,3 +110,5 @@ export class WebSocketClient {
         }
     }
 }
+
+export default WebSocketClient;

@@ -1,7 +1,6 @@
 import axios, {
     AxiosRequestConfig,
     AxiosResponse,
-    AxiosError,
     CancelTokenSource,
     InternalAxiosRequestConfig,
     AxiosInstance,
@@ -308,3 +307,5 @@ export class AxiosWrapper {
         this.isPolling = false;
     }
 }
+
+export default AxiosWrapper;

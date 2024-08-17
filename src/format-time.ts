@@ -13,23 +13,30 @@ const parseDateComponents = (time: Date) => ({
 
 const splitFormatter = (formatter: string): [string, string, string] => {
     const separators = ['/', '-', ':', '.'];
-    const separator = separators.find(sep => formatter.includes(sep)) || ' ';
+    const separator = separators.find((sep) => formatter.includes(sep)) || ' ';
     const [left, right] = formatter.split(separator);
     return [left, right, separator];
 };
 
-const formatWithComponents = (components: Record<string, string>, format: string, separator: string): string => {
+const formatWithComponents = (
+    components: Record<string, string>,
+    format: string,
+    separator: string,
+): string => {
     const [part1, part2, part3] = format.split(separator);
     return [
         components[part1] || '',
         part2 ? separator : '',
         components[part2] || '',
         part3 ? separator : '',
-        components[part3] || ''
+        components[part3] || '',
     ].join('');
 };
 
-export const formatTime = (time: Date | number, formatter?: TimeFormatter): string => {
+export const formatTime = (
+    time: Date | number,
+    formatter?: TimeFormatter,
+): string => {
     // 处理时间戳和 Date 对象
     const date = typeof time === 'number' ? new Date(time) : time;
 
@@ -41,7 +48,14 @@ export const formatTime = (time: Date | number, formatter?: TimeFormatter): stri
     }
 
     // 默认格式化逻辑
-    const { year, month, date: day, hour, minute, second } = parseDateComponents(date);
+    const {
+        year,
+        month,
+        date: day,
+        hour,
+        minute,
+        second,
+    } = parseDateComponents(date);
     const formattedComponents = {
         YYYY: year.toString(),
         MM: padZero(month),
@@ -65,8 +79,18 @@ export const formatTime = (time: Date | number, formatter?: TimeFormatter): stri
 
     const [leftFormat, rightFormat, leftSeparator] = splitFormatter(formatter);
 
-    const leftResult = formatWithComponents(formattedComponents, leftFormat, leftSeparator);
-    const rightResult = formatWithComponents(formattedComponents, rightFormat, leftSeparator);
+    const leftResult = formatWithComponents(
+        formattedComponents,
+        leftFormat,
+        leftSeparator,
+    );
+    const rightResult = formatWithComponents(
+        formattedComponents,
+        rightFormat,
+        leftSeparator,
+    );
 
     return `${leftResult} ${rightResult}`.trim();
 };
+
+export default formatTime;

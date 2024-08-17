@@ -248,3 +248,5 @@ export class Draggable {
         this.unbindEvents();
     }
 }
+
+export default Draggable;

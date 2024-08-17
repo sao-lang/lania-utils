@@ -85,3 +85,5 @@ export class Validator<T> {
         }
     }
 }
+
+export default Validator;

@@ -38,7 +38,7 @@ class NamespaceManager {
     }
 }
 
-class EventBus {
+export class EventBus {
     private events: Map<string, PriorityEventHandler[]> = new Map();
     private eventCounts: Map<string, number> = new Map();
     private namespaceManager = new NamespaceManager();
@@ -166,3 +166,5 @@ class EventBus {
         return `${namespace}:${event}`;
     }
 }
+
+export default EventBus;

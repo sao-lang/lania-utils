@@ -76,3 +76,5 @@ export class SSEClient {
         }
     }
 }
+
+export default SSEClient;

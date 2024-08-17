@@ -256,3 +256,5 @@ export class Store<
         }
     }
 }
+
+export default Store;
