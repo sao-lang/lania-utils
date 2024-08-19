@@ -7,6 +7,7 @@ export interface AsyncAction {
     payload?: any;
     asyncFunc?: (state: any) => Promise<any>;
 }
+
 export type StorePlugin<
     S extends Record<string, any> = any,
     D extends Record<string, any> = any,
@@ -59,11 +60,10 @@ export class Store<
     private watchedProperties: Map<
         string,
         {
-            callbacks: ((newValue: any, oldValue: any) => void)[];
+            callback: (newValue: any, oldValue: any) => void;
+            options: { immediate: boolean; deep: boolean };
             value: any;
-            immediate: boolean;
-            deep: boolean;
-        }
+        }[]
     >;
     private derivedState: DerivedState<S, D>;
     private snapshots: S[] = [];
@@ -97,24 +97,20 @@ export class Store<
     public getDerivedState<P extends keyof D | '' = ''>(
         path?: P,
     ): GetDerivedStateType<S, D, P> {
-        if (path === undefined || path === '') {
+        if (!path) {
             // 如果没有 path，则返回整个 derivedState 对象
-            const derivedState = Object.fromEntries(
+            return Object.fromEntries(
                 Object.entries(this.derivedState).map(([key, func]) => [
                     key,
                     func(this.state),
                 ]),
-            ) as { [K in keyof D]: GetDerivedStateValue<S, D, K> };
-
-            return derivedState as GetDerivedStateType<S, D, ''> as any;
-        } else if (path in this.derivedState) {
-            // 如果有 path 且 path 存在于 derivedState 中，则返回对应的值
-            const func = this.derivedState[path];
-            return func(this.state) as GetDerivedStateType<S, D, typeof path>;
-        } else {
-            // 如果 path 不存在于 derivedState 中，则返回 never
+            ) as { [K in keyof D]: GetDerivedStateValue<S, D, K> } as any;
+        }
+        if (!this.derivedState.hasOwnProperty(path)) {
             return undefined as never;
         }
+        const func = this.derivedState[path];
+        return func(this.state) as GetDerivedStateType<S, D, typeof path>;
     }
 
     public async dispatch(
@@ -127,22 +123,16 @@ export class Store<
             const oldState = { ...this.state };
             for (const action of actions) {
                 if (action.asyncFunc) {
-                    try {
-                        action.payload = await action.asyncFunc(this.state);
-                    } catch (error) {
-                        console.error('Async action failed:', error);
-                        continue; // 如果异步任务失败，跳过此action
-                    }
+                    action.payload = await action.asyncFunc(this.state);
                 }
-
                 const reducer = this.reducers?.[action.type];
-                if (reducer) {
-                    this.state = reducer(this.state, action.payload);
-                } else {
+                if (!reducer) {
                     console.warn(
                         `No reducer found for action type: ${action.type}`,
                     );
+                    continue;
                 }
+                this.state = reducer(this.state, action.payload);
             }
             this.notifyWatchers(this.state);
             this.subscribers.forEach((subscriber) => subscriber(this.state));
@@ -158,20 +148,23 @@ export class Store<
     }
 
     private notifyWatchers(newState: S): void {
-        this.watchedProperties.forEach((data, path) => {
+        this.watchedProperties.forEach((watchList, path) => {
             const newValue = this.getNestedValue(newState, path);
-            if (newValue !== data.value) {
-                data.callbacks.forEach((callback) => {
-                    callback(newValue, data.value);
-                });
-                data.value = newValue;
-            }
+            watchList.forEach((data) => {
+                if (newValue !== data.value) {
+                    data.callback(newValue, data.value);
+                    data.value = newValue;
+                }
+            });
         });
     }
 
     public addPlugin(plugin: StorePlugin<S> | StorePlugin<S>[]): void {
+        const plugins = Array.isArray(plugin) ? plugin : [plugin];
+        plugins.forEach((plugin) => {
+            plugin?.onInit?.(this);
+        });
         this.plugins.push(...(Array.isArray(plugin) ? plugin : [plugin]));
-        this.initializePlugins();
     }
 
     private initializePlugins(): void {
@@ -193,18 +186,23 @@ export class Store<
     ): () => void {
         const { immediate = false, deep = false } = options;
         const initialValue = this.getNestedValue(this.state, path);
-        const data = this.watchedProperties.get(path);
-        data
-            ? data.callbacks.push(callback)
-            : this.watchedProperties.set(path, {
-                  callbacks: [callback],
-                  value: initialValue,
-                  immediate,
-                  deep,
-              });
+        const watchList = this.watchedProperties.get(path) || [];
+        // 添加新监听到 watchList 中
+        watchList.push({ callback, options: { immediate, deep }, value: initialValue });
+        this.watchedProperties.set(path, watchList);
+
         deep && this.applyDeepProxy(path, initialValue);
         immediate && callback(initialValue, initialValue);
-        return () => this.watchedProperties.delete(path);
+
+        // 返回一个函数用于解除监听
+        return () => {
+            const updatedWatchList = this.watchedProperties.get(path)?.filter(item => item.callback !== callback);
+            if (updatedWatchList && updatedWatchList.length > 0) {
+                this.watchedProperties.set(path, updatedWatchList);
+            } else {
+                this.watchedProperties.delete(path);
+            }
+        };
     }
 
     private applyDeepProxy(path: string, obj: any): void {
@@ -216,18 +214,20 @@ export class Store<
                     const fullPath = `${path}.${String(prop)}`;
                     const watchData = this.watchedProperties.get(fullPath);
                     if (watchData) {
-                        watchData.callbacks.forEach((callback) =>
-                            callback(value, oldValue),
-                        );
+                        watchData.forEach((data) => {
+                            data.callback(value, oldValue);
+                        });
                         this.notifyWatchers(this.state);
                     }
-                    typeof value === 'object' &&
-                        value !== null &&
+                    if (typeof value === 'object' && value !== null) {
                         this.applyDeepProxy(fullPath, value);
+                    }
                 }
                 return true;
             },
         };
+
+        // 为对象的每个子对象应用代理
         Object.keys(obj).forEach((key) => {
             if (typeof obj[key] === 'object' && obj[key] !== null) {
                 obj[key] = new Proxy(obj[key], handler);
