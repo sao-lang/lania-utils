@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.23](https://github.com/sao-lang/lania-utils/compare/v1.4.22...v1.4.23) (2024-08-19)
+
+
+### ♻️ Code Refactoring | 代码重构
+
+* update store ([09fe585](https://github.com/sao-lang/lania-utils/commit/09fe585f6fed406085c0bf881a9550a396e8e77c))
+
 ### [1.4.22](https://github.com/sao-lang/lania-utils/compare/v1.4.21...v1.4.22) (2024-08-17)
 
 
